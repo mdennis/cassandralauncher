@@ -170,7 +170,7 @@ def create_cluster(aws_access_key_id, aws_secret_access_key, reservation_size, i
 
     try:
         # Create the EC2 cluster
-        print 'Launching cluster...'
+        print 'Launching cluster ...'
         start_time = time.time()
         try:
             reservation = conn.run_instances(image,
@@ -180,6 +180,7 @@ def create_cluster(aws_access_key_id, aws_secret_access_key, reservation_size, i
                                              key_name=key_pair,
                                              placement=placement,
                                              security_groups=['DataStax'], user_data=user_data)
+                    
         except boto.exception.EC2ResponseError:
             print_boto_error()
 

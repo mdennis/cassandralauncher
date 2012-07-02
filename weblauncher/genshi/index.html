@@ -1,0 +1,42 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+
+  <head>
+    <title>$title</title>
+    <link rel="stylesheet" type="text/css" href="css/weblauncher.css"/>
+  </head>
+
+  <body class="index">
+    <div id="stylized" class="form">
+      <form id="form" name="form" method="post" action="launch">
+	<h1>DSE Launcher</h1>
+	
+	<label>cassandra nodes
+	  <span class="small">number of C* nodes</span>
+	</label>
+	<input type="text" name="c_nodes" id="c_nodes" value="1"/>
+
+	<label>analytics nodes
+	  <span class="small">number of H* nodes</span>
+	</label>
+	<input type="text" name="h_nodes" id="h_nodes" value="1"/>
+
+	<label>solr nodes
+	  <span class="small">number of S* nodes</span>
+	</label>
+	<input type="text" name="s_nodes" id="s_nodes" value="1"/>
+
+	<label>TTL (seconds)
+	  <span class="small">terminate after TTL</span>
+	</label>
+	<input type="text" name="ttl" id="ttl" value="3300"/>
+
+	<button type="submit">launch!</button>
+	<div class="spacer"></div>
+
+      </form>
+    </div>
+    
+  </body>
+
+</html>

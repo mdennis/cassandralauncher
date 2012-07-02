@@ -72,3 +72,13 @@ My cluster is not done launching one (or several) of my nodes. What did I do wro
     Nothing. EC2 and Rackspace do this from time to time. You can either continue on to do
     basic testing, or terminate this cluster and try again. Using EC2 and Rackspace off it's
     peak hours helps in this scenario, in general.
+
+## weblauncher
+
+the weblauncher directory contains a trivial web front end for the launcher.  weblauncher/weblauncher.py --help will give details.  If a results_directory is specified, all cluster launches are recorded in a format that the demoservice can pick up to automatically terminate the cluster after a specified TTL.
+
+## demoservice
+
+the scripts/demoservice can be copied to a crond job to be run every few minutes.  If you specifiy the same results directory (defaults to /tmp/wl) used by the weblauncher (or from the command line) the demoservice script will terminate clusters whose TTL has expired.
+
+

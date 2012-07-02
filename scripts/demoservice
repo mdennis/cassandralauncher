@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+set -e
+/path/to/demoservice.py -r /tmp/wl

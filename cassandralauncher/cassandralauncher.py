@@ -9,6 +9,7 @@ import sys
 import tempfile
 import time
 import urllib2
+import uuid
 
 import ec2
 import common
@@ -360,26 +361,6 @@ def install_opsc_agents(user):
 #################################
 
 #################################
-# Log code for private stats
-
-def running_log(reservation, demotime):
-    """Logs usage data for personal stats."""
-
-    loginfo = [
-        'Running' if config.get('Cassandra', 'demo') == 'True' else 'Ignore',
-        config.get('Shared', 'handle'),
-        str(demotime),
-        str(time.time()),
-        str(reservation.id)
-    ]
-    logline = ",".join(loginfo) + '\n'
-
-    with open('running.log', 'a') as f:
-        f.write(logline)
-
-#################################
-
-#################################
 # Argument parsing
 
 # This holds the information for all options
@@ -466,8 +447,8 @@ options_tree = {
     },
     'demotime': {
         'Section': 'Cassandra',
-        'Prompt': 'Time (in hours) for the cluster to live',
-        'Help': 'For use with DemoService'
+        'Prompt': 'Time (in seconds) for the cluster to live',
+        'Help': 'For use with demoservice'
     },
     'instance_type': {
         'Section': 'EC2',
@@ -490,7 +471,18 @@ options_tree = {
         'Prompt': 'QA',
         'Action': 'store_true',
         'Help': 'Upload QA scripts.'
+    },
+   'result_directory':{
+        'Section': 'CLI',
+        'Prompt': 'NoPrompts',
+        'Help': 'log results of launch to a file in the specified directory'
+    },
+    'launch_id':{
+        'Section': 'CLI',
+        'Prompt': 'NoPrompts',
+        'Help': 'use specified id in combination with result_directory'
     }
+    
 }
 
 def type_checker(option, read_option, type_check, passive=False):
@@ -670,11 +662,11 @@ def main():
         print
 
     # Included for the experimental DemoService that requires demoservice.py to always be running
-    demotime = -1
+    demotime = 0
     if config.get('Cassandra', 'demo') == 'True':
         print "Your configuration file is set to launch a demo cluster for a specified time."
         demotime = check_cascading_options('demotime', float)
-        print "If the demo service is running, this cluster will live for %s hour(s)." % demotime
+        print "If demosercie is running, this cluster will live for %s seconds(s)." % demotime
         print
 
     if check_cascading_options('installopscenter', optional=True) == 'False':
@@ -709,12 +701,33 @@ def main():
     private_ips, public_ips, reservation = clusterinfo
 
     # Log clusterinfo
-    running_log(reservation, demotime)
+    if check_cascading_options('result_directory', optional=True):
+        result_directory = check_cascading_options('result_directory')
+        user_data += ' --result_directory %s' % result_directory
+
+        launch_id = str(uuid.uuid4())
+        if check_cascading_options('launch_id', optional=True):
+            launch_id = check_cascading_options('launch_id')
+            user_data += ' --launch_id %s' % launch_id
+
+        if not os.path.exists(result_directory):
+            os.mkdir(result_directory)
+
+        tmpfile = os.path.join(result_directory, "%s.tmp" % launch_id)
+        dstfile = os.path.join(result_directory, "%s.results" % launch_id)
+        with open(tmpfile, 'w') as f:
+            f.write("reservation_id=%s\n" % reservation.id)
+            f.write("ttl_seconds=%s\n" % demotime)
+            f.write("launch_time=%s\n" % time.time())
+            if check_cascading_options('installopscenter', optional=True) != 'False':
+                f.write("opsc_ip=%s\n" % public_ips[0])
+                f.write("opsc_port=%s\n" % opscenterinterface)
+        os.rename(tmpfile, dstfile)
 
     if check_cascading_options('installopscenter', optional=True) != 'False':
         # Print OpsCenter url
-        print "OpsCenter Address:"
-        print "http://%s:%s" % (public_ips[0], opscenterinterface)
+        url = "http://%s:%s" % (public_ips[0], opscenterinterface)
+        print "OpsCenter URL: %s" % url
         print "Note: You must wait 60 seconds after Cassandra becomes active to access OpsCenter."
         print
 
