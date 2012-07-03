@@ -132,6 +132,7 @@ def run(result_directory, password_file):
     }
 
     init_logging()
+    cherrypy.server.socket_host = '0.0.0.0'
     cherrypy.tree.mount(None, "/", config=conf)
     cherrypy.quickstart(None, config=conf)
 
